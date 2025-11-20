@@ -25,7 +25,7 @@
 
 1.  Клонируйте репозиторий
     ```sh
-    git clone https://github.com/your_username_/Project-Name.git
+    git clone https://github.com/vnadein/unitybook.git
     ```
 2.  Установите пакеты NPM
     ```sh
