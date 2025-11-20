@@ -115,6 +115,23 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
     setTabs(newTabs)
   }
 
+  const updateTabAfterSave = (newId: string) => {
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) => {
+        if (tab.active && tab.type === "object" && !tab.objectId) {
+          const newTitle = tab.title.replace("(созд.)", "(ред.)")
+          return {
+            ...tab,
+            objectId: newId,
+            id: `obj_${tab.metaId}_${newId}`, // Update tab ID to be unique
+            title: newTitle,
+          }
+        }
+        return tab
+      }),
+    )
+  }
+
   return (
     <OneCLayout
       title="UnityBook: Предприятие"
@@ -199,7 +216,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
       {/* Workspace */}
       <div className="flex-1 bg-[#F8F9FA] p-4 overflow-auto relative">
         {activeTab && (
-          <div className="bg-white border border-gray-200 shadow-sm rounded-xl h-full w-full overflow-hidden flex flex-col">
+          <div className="bg-white border border-gray-200 shadow-sm rounded-sm h-full w-full overflow-hidden flex flex-col">
             {activeTab.type === "list" && activeTab.metaId && (
               <ListForm
                 metaId={activeTab.metaId}
@@ -212,6 +229,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
                 metaId={activeTab.metaId}
                 objectId={activeTab.objectId}
                 onClose={() => closeTab(activeTab.id)}
+                onSaveNew={updateTabAfterSave}
               />
             )}
             {activeTab.type === "report" && <ReportBuilder />}

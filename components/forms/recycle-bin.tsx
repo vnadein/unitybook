@@ -25,6 +25,9 @@ export function RecycleBin() {
     for (const type in data) {
       for (const id in data[type]) {
         const currentItem = data[type][id]
+        // Don't count self-references or items that are also marked for deletion
+        if (id === item.id || currentItem._markedForDeletion) continue
+
         for (const field in currentItem) {
           if (currentItem[field] === item._name) {
             count++

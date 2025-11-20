@@ -6,11 +6,15 @@ import { Plus, Search, MoreHorizontal, FileText, Check, Pencil, Trash2, AlertTri
 
 export function ListForm({
   metaId,
+  parentValue,
+  parentField,
   onEditItem,
   onNewItem,
   onSelect,
 }: {
   metaId: string
+  parentValue?: any
+  parentField?: string
   onEditItem: (id: string) => void
   onNewItem: () => void
   onSelect?: (item: any) => void
@@ -38,7 +42,11 @@ export function ListForm({
     return false
   }
 
-  const items = allItems.filter((item: any) => {
+  const filteredByParent = parentField && parentValue
+    ? allItems.filter((item: any) => item[parentField] === parentValue)
+    : allItems
+
+  const items = filteredByParent.filter((item: any) => {
     if (!searchQuery) return true
     const searchLower = searchQuery.toLowerCase()
     if (item._code?.toLowerCase().includes(searchLower)) return true
@@ -96,7 +104,7 @@ export function ListForm({
   return (
     <div className="flex flex-col h-full">
       {/* Command Bar */}
-      <div className="bg-gray-100 border-b border-gray-300 p-1 flex gap-1 items-center">
+      <div className="bg-gray-100 border-b border-gray-300 p-1 flex gap-1 items-center rounded-t-sm">
         {onSelect && (
           <button
             onClick={() => selectedId && onSelect(items.find((i: any) => i.id === selectedId))}

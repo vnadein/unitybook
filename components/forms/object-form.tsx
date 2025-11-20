@@ -9,15 +9,26 @@ export function ObjectForm({
   metaId,
   objectId,
   onClose,
+  onSaveNew,
   isPreview = false,
-}: { metaId: string; objectId?: string; onClose: () => void; isPreview?: boolean }) {
+}: {
+  metaId: string
+  objectId?: string
+  onClose: () => void
+  onSaveNew?: (newId: string) => void
+  isPreview?: boolean
+}) {
   const { metadata, data, saveData } = useContext(SystemContext)
   const meta = [...metadata.catalogs, ...metadata.documents].find((m) => m.id === metaId)
 
   const [formData, setFormData] = useState<any>({})
-  const [selectionModal, setSelectionModal] = useState<{ open: boolean; fieldName: string; metaId: string } | null>(
-    null,
-  )
+  const [selectionModal, setSelectionModal] = useState<{
+    open: boolean
+    fieldName: string
+    metaId: string
+    parentValue?: any
+    parentField?: string
+  } | null>(null)
 
   useEffect(() => {
     if (objectId && data[metaId]?.[objectId]) {
@@ -28,14 +39,55 @@ export function ObjectForm({
       if (meta?.type === "catalog") {
         defaults._code = "AUTO"
         defaults._name = ""
+      } else if (meta?.type === "document") {
+        defaults.Дата = new Date().toISOString().slice(0, 10)
+        if (meta.autoNumbering !== false) {
+          const allDocs = data[metaId] ? Object.values(data[metaId]) : []
+          const lastNumber = allDocs.reduce((max, doc: any) => (doc.Номер > max ? doc.Номер : max), 0)
+          defaults.Номер = lastNumber + 1
+        }
       }
+      // Apply default values from metadata for new items
+      meta?.fields.forEach((field) => {
+        if (field.type === "string" && field.defaultValue) {
+          defaults[field.name] = field.defaultValue
+        }
+        if (field.type === "number" && field.defaultValue) {
+          defaults[field.name] = field.defaultValue
+        }
+        if (field.type === "date" && field.defaultValue === "now") {
+          const now = new Date()
+          // Adjust for timezone offset to get local time in YYYY-MM-DDTHH:mm format
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+          if (field.dateVariant === "datetime-local") {
+            defaults[field.name] = now.toISOString().slice(0, 16)
+          } else if (field.dateVariant === "time") {
+            defaults[field.name] = now.toISOString().slice(11, 16)
+          } else { // default to 'date'
+            defaults[field.name] = now.toISOString().slice(0, 10)
+          }
+        }
+        if (field.type === "boolean" && field.defaultValue !== undefined) {
+          defaults[field.name] = field.defaultValue
+        }
+      })
       setFormData(defaults)
     }
   }, [objectId, metaId, data, meta?.type])
 
   if (!meta) return null
 
-  const handleSave = () => {
+  const handleSaveOnly = () => {
+    if (isPreview) return
+    const isNew = !objectId
+    saveData(metaId, formData.id, formData)
+    if (isNew && onSaveNew) {
+      onSaveNew(formData.id)
+    }
+    // Here you could add a toast notification for user feedback
+  }
+
+  const handleSaveAndClose = () => {
     if (isPreview) return // Disable save in preview
     saveData(metaId, formData.id, formData)
     onClose()
@@ -68,6 +120,8 @@ export function ObjectForm({
             <div className="flex-1 overflow-hidden p-2">
               <ListForm
                 metaId={selectionModal.metaId}
+                parentValue={selectionModal.parentValue}
+                parentField={selectionModal.parentField}
                 onEditItem={() => {}} // Disable editing in selection mode for now
                 onNewItem={() => {}} // Disable creating in selection mode for now
                 onSelect={handleSelect}
@@ -81,7 +135,7 @@ export function ObjectForm({
       <div className="bg-[#E0F2F1] border-b border-[#80CBC4] p-1 flex justify-between items-center">
         <div className="flex gap-1">
           <button
-            onClick={handleSave}
+            onClick={handleSaveAndClose}
             disabled={isPreview}
             className={`flex items-center gap-1 px-3 py-1 border rounded text-xs font-medium transition-colors
               ${
@@ -94,7 +148,7 @@ export function ObjectForm({
             <span>Записать и закрыть</span>
           </button>
           <button
-            onClick={handleSave}
+            onClick={handleSaveOnly}
             disabled={isPreview}
             className={`p-1 rounded ${isPreview ? "text-gray-300" : "hover:bg-[#B2DFDB] text-gray-600"}`}
           >
@@ -137,8 +191,30 @@ export function ObjectForm({
               </>
             )}
 
+            {meta.type === "document" && (
+              <>
+                <label className="text-xs text-gray-600 text-right">Номер, дата:</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={formData.Номер || ""}
+                    onChange={(e) => handleChange("Номер", e.target.value)}
+                    readOnly={meta.autoNumbering !== false || (meta.numberReadOnly ?? true)}
+                    className="w-32 border border-gray-300 p-1 text-sm rounded focus:border-[#00695C] outline-none"
+                  />
+                  <span className="text-sm text-gray-600">от:</span>
+                  <input
+                    type="date"
+                    value={formData.Дата || ""}
+                    onChange={(e) => handleChange("Дата", e.target.value)}
+                    readOnly={meta.dateReadOnly ?? true}
+                    className="w-32 border border-gray-300 p-1 text-sm rounded focus:border-[#00695C] outline-none"
+                  />
+                </div>
+              </>
+            )}
+
             {meta.fields.map((field) => (
-              <div key={field.id} className="contents">
+              <div key={field.id} className={field.hidden ? "hidden" : "contents"}> {/* Apply hidden property */}
                 <label className="text-xs text-gray-600 text-right">
                   {field.name}
                   {field.required && <span className="text-red-500 ml-0.5">*</span>}:
@@ -149,6 +225,7 @@ export function ObjectForm({
                       type="checkbox"
                       checked={formData[field.name] || false}
                       onChange={(e) => handleChange(field.name, e.target.checked)}
+                      disabled={field.readOnly} // Apply readOnly
                       className="w-4 h-4 text-[#00695C] focus:ring-[#00695C] border-gray-300 rounded"
                     />
                   ) : field.type === "reference" ? (
@@ -156,6 +233,7 @@ export function ObjectForm({
                       <select
                         value={formData[field.name] || ""}
                         onChange={(e) => handleChange(field.name, e.target.value)}
+                        disabled={field.readOnly} // Apply readOnly
                         className={`w-full border p-1 text-sm rounded-l focus:border-[#00695C] outline-none appearance-none bg-white pr-16 ${field.required && !formData[field.name] ? "border-red-300" : "border-gray-300"}`}
                         required={field.required}
                       >
@@ -173,22 +251,28 @@ export function ObjectForm({
                       </select>
 
                       {/* Custom controls overlay */}
-                      <div className="absolute right-0 top-0 bottom-0 flex border-l border-gray-300 bg-gray-50 rounded-r overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            field.referenceTo &&
-                            setSelectionModal({ open: true, fieldName: field.name, metaId: field.referenceTo })
-                          }
-                          className="px-2 hover:bg-[#B2DFDB] border-r border-gray-300 flex items-center justify-center"
-                          title="Показать все (Открыть список)"
-                        >
-                          <AppWindow className="w-3 h-3 text-[#00695C]" />
-                        </button>
-                        <div className="px-1 flex items-center justify-center pointer-events-none">
-                          <ChevronDown className="w-3 h-3 text-gray-500" />
+                      {!field.readOnly && ( // Disable button if readOnly
+                        <div className="absolute right-0 top-0 bottom-0 flex border-l border-gray-300 bg-white overflow-hidden"> {/* Added border-l, bg-white */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!field.referenceTo) return
+                              const parentValue = field.parentField ? formData[field.parentField] : undefined
+                              setSelectionModal({
+                                open: true,
+                                fieldName: field.name,
+                                metaId: field.referenceTo,
+                                parentValue,
+                                parentField: field.parentField,
+                              })
+                            }}
+                            className="px-2 hover:bg-[#B2DFDB] flex items-center justify-center rounded-r" /* Removed all borders */
+                            title="Показать все (Открыть список)"
+                          >
+                            <AppWindow className="w-3 h-3 text-[#00695C]" />
+                          </button>
                         </div>
-                      </div>
+                      )}
                     </div>
                   ) : field.type === "string" && field.multiline ? (
                     <textarea
@@ -196,19 +280,33 @@ export function ObjectForm({
                       onChange={(e) => handleChange(field.name, e.target.value)}
                       maxLength={field.length && field.length > 0 ? field.length : undefined}
                       required={field.required}
+                      placeholder={field.description || ""} // Apply description as placeholder
+                      readOnly={field.readOnly} // Apply readOnly
                       rows={3}
                       className={`w-full border p-1 text-sm rounded focus:border-[#00695C] outline-none resize-y ${field.required && !formData[field.name] ? "border-red-300" : "border-gray-300"}`}
                     />
                   ) : (
                     <input
-                      type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
+                      type={
+                        field.type === "number"
+                          ? "number"
+                          : field.type === "date"
+                          ? field.dateVariant || "date"
+                          : field.password
+                          ? "password"
+                          : field.isFile
+                          ? "file"
+                          : "text"
+                      }
                       value={formData[field.name] || ""}
                       onChange={(e) => handleChange(field.name, e.target.value)}
-                      maxLength={field.type === "string" && field.length && field.length > 0 ? field.length : undefined}
+                      {...(field.type === "string" && field.length && field.length > 0 ? { maxLength: field.length } : {})} // Apply maxLength conditionally
                       min={field.type === "number" ? field.min : undefined}
                       max={field.type === "number" ? field.max : undefined}
                       step={field.type === "number" && field.precision ? Math.pow(0.1, field.precision) : "any"}
                       required={field.required}
+                      {...(field.type === "string" && field.description ? { placeholder: field.description } : {})} // Apply placeholder conditionally
+                      readOnly={field.readOnly} // Apply readOnly
                       className={`w-full border p-1 text-sm rounded focus:border-[#00695C] outline-none ${field.required && !formData[field.name] ? "border-red-300" : "border-gray-300"}`}
                     />
                   )}

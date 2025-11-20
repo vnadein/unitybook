@@ -80,8 +80,7 @@ export const initialMetadata: Metadata = {
       name: "Приходная накладная",
       type: "document",
       fields: [
-        { id: "f1", name: "Номер", type: "string", length: 20, required: true },
-        { id: "f2", name: "Дата", type: "date", required: true },
+
         { id: "f3", name: "Контрагент", type: "reference", referenceTo: "cat_contragents", required: true },
         { id: "f4", name: "Сумма", type: "number", precision: 2, required: true },
       ],
