@@ -227,11 +227,13 @@ export function ListForm({
                   <th className="border border-gray-300 p-1 text-left font-medium text-gray-600">Дата</th>
                 </>
               )}
-              {meta.fields.map((f) => (
-                <th key={f.id} className="border border-gray-300 p-1 text-left font-medium text-gray-600">
-                  {f.name}
-                </th>
-              ))}
+              {meta.fields
+                .filter(f => f.showInJournal !== false) // Only show if true or undefined
+                .map((f) => (
+                  <th key={f.id} className="border border-gray-300 p-1 text-left font-medium text-gray-600">
+                    {f.name}
+                  </th>
+                ))}
             </tr>
           </thead>
           <tbody>
@@ -275,14 +277,16 @@ export function ListForm({
                     </td>
                   </>
                 )}
-                {meta.fields.map((f) => (
-                  <td
-                    key={f.id}
-                    className={`border border-gray-200 p-1 ${item._markedForDeletion ? "line-through" : ""}`}
-                  >
-                    {typeof item[f.name] === "boolean" ? (item[f.name] ? "Да" : "Нет") : item[f.name]}
-                  </td>
-                ))}
+                {meta.fields
+                  .filter(f => f.showInJournal !== false) // Only show if true or undefined
+                  .map((f) => (
+                    <td
+                      key={f.id}
+                      className={`border border-gray-200 p-1 ${item._markedForDeletion ? "line-through" : ""}`}
+                    >
+                      {typeof item[f.name] === "boolean" ? (item[f.name] ? "Да" : "Нет") : item[f.name]}
+                    </td>
+                  ))}
               </tr>
             ))}
             {items.length === 0 && (
