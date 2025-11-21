@@ -75,7 +75,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
               <h3 className="font-bold text-gray-900">Настройки объекта</h3>
             </div>
             <div className="p-6 flex-1 flex flex-col">
-              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+              <div className="grid grid-cols-[1fr_auto] gap-4 items-center mb-6">
                 <label className="text-sm font-medium text-gray-600">Автоматическое нумерование:</label>
                 <input
                   type="checkbox"
@@ -104,7 +104,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
               </div>
 
               {/* Journal Form Settings */}
-              <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden flex-1 flex flex-col">
+              <div className="border border-gray-200 rounded-lg overflow-hidden flex-1 flex flex-col">
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <span className="font-bold text-sm text-gray-700">Настройки формы журнала</span>
                 </div>
