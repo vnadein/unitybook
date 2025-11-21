@@ -48,12 +48,12 @@ export function ReportBuilder() {
         </div>
         <button
           onClick={generateReport}
-          className="bg-emerald-500 hover:bg-emerald-600 border-emerald-700 px-4 py-1 rounded text-xs font-bold text-white flex items-center gap-2"
+          className="bg-emerald-500 hover:bg-emerald-600 border-emerald-700 px-4 py-1 rounded text-xs font-bold text-white flex items-center gap-2 cursor-pointer"
         >
           <Play className="w-3 h-3 fill-current" />
           Сформировать
         </button>
-        <button className="bg-white border border-gray-300 px-3 py-1 rounded text-xs text-gray-700 flex items-center gap-2 hover:bg-gray-50">
+        <button className="bg-white border border-gray-300 px-3 py-1 rounded text-xs text-gray-700 flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
           <Settings className="w-3 h-3" />
           Настройки...
         </button>
