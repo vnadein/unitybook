@@ -15,6 +15,8 @@ interface Tab {
   title: string
   metaId?: string
   objectId?: string // For editing specific item
+  parentId?: string | null // For creating new item in a folder
+  currentFolder?: string | null
   active: boolean
 }
 
@@ -63,13 +65,14 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
         type: "list",
         title: meta.name,
         metaId: meta.id,
+        currentFolder: null,
         active: true,
       }
       setTabs((prev) => prev.map((t) => ({ ...t, active: false })).concat(newTab))
     }
   }
 
-  const openObject = (metaId: string, objectId?: string) => {
+  const openObject = (metaId: string, objectId?: string, parentId?: string | null) => {
     if (!hasPermission(metaId, objectId ? "write" : "read")) return
     const meta = [...metadata.catalogs, ...metadata.documents].find((m) => m.id === metaId)
     if (!meta) return
@@ -100,6 +103,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
       title: tabTitle,
       metaId: metaId,
       objectId: objectId,
+      parentId: parentId,
       active: true,
     }
     setTabs((prev) => prev.map((t) => ({ ...t, active: false })).concat(newTab))
@@ -140,9 +144,21 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
   }
 
   const closeTab = (id: string) => {
+    const closedTab = tabs.find(t => t.id === id);
     const newTabs = tabs.filter((t) => t.id !== id)
-    if (newTabs.length > 0 && tabs.find((t) => t.id === id)?.active) {
-      newTabs[newTabs.length - 1].active = true
+    
+    if (newTabs.length > 0 && closedTab?.active) {
+        // If the closed tab was an object form, try to find the parent list tab and set it active
+        const parentListTab = closedTab?.type === 'object' 
+            ? tabs.find(t => t.type === 'list' && t.metaId === closedTab.metaId)
+            : null;
+
+        if (parentListTab) {
+            newTabs.forEach(t => t.active = t.id === parentListTab.id);
+        } else {
+            // Fallback to activating the last tab
+            newTabs[newTabs.length - 1].active = true;
+        }
     }
     setTabs(newTabs)
   }
@@ -170,6 +186,10 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
         return tab
       }),
     )
+  }
+  
+  const updateTabFolder = (tabId: string, folderId: string | null) => {
+      setTabs(tabs.map(t => t.id === tabId ? { ...t, currentFolder: folderId } : t));
   }
 
   return (
@@ -260,14 +280,17 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
             {activeTab.type === "list" && activeTab.metaId && (
               <ListForm
                 metaId={activeTab.metaId}
+                currentFolder={activeTab.currentFolder}
+                setCurrentFolder={(folderId) => updateTabFolder(activeTab.id, folderId)}
                 onEditItem={(id) => openObject(activeTab.metaId!, id)}
-                onNewItem={() => openObject(activeTab.metaId!)}
+                onNewItem={(parent) => openObject(activeTab.metaId!, undefined, parent)}
               />
             )}
             {activeTab.type === "object" && activeTab.metaId && (
               <ObjectForm
                 metaId={activeTab.metaId}
                 objectId={activeTab.objectId}
+                initialParent={activeTab.parentId}
                 onClose={() => closeTab(activeTab.id)}
                 onSaveNew={updateTabAfterSave}
               />

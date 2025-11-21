@@ -81,12 +81,14 @@ function renderFieldInput(
 export function ObjectForm({
   metaId,
   objectId,
+  initialParent,
   onClose,
   onSaveNew,
   isPreview = false,
 }: {
   metaId: string
   objectId?: string
+  initialParent?: string | null
   onClose: () => void
   onSaveNew?: (newId: string, savedData: any) => void
   isPreview?: boolean
@@ -107,6 +109,8 @@ export function ObjectForm({
   const headerRef = useRef<HTMLDivElement>(null);
     const [tableHeight, setTableHeight] = useState<number | string>('auto');
   
+    const folders = data[metaId] ? Object.values(data[metaId]).filter((item: any) => item._isFolder) : [];
+
     useEffect(() => {
       const calculateHeight = () => {
         if (panelRef.current && headerRef.current) {
@@ -138,6 +142,7 @@ export function ObjectForm({
         if (meta?.type === "catalog") {
         defaults._code = "AUTO"
         defaults._name = ""
+        defaults.parent = initialParent || null
       } else if (meta?.type === "document") {
         defaults.Дата = new Date().toISOString().slice(0, 10)
         if (meta.autoNumbering !== false) {
@@ -300,6 +305,22 @@ export function ObjectForm({
               {/* Main Fields */}
               {meta.type === "catalog" && (
               <>
+                {folders.length > 0 && (
+                  <>
+                    <label className="text-xs text-gray-600 text-right">Родитель:</label>
+                    <select
+                      value={formData.parent || ""}
+                      onChange={(e) => handleChange("parent", e.target.value || null)}
+                      className="w-full border border-gray-300 p-1 text-sm rounded focus:border-[#00695C] outline-none"
+                    >
+                      <option value="">Корень</option>
+                      {folders.map((folder: any) => (
+                        <option key={folder.id} value={folder.id}>{folder._name}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
+
                 <label className="text-xs text-gray-600 text-right">Код:</label>
                 <input
                   value={formData._code || ""}
