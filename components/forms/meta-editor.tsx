@@ -105,7 +105,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
             <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
               <button
                 onClick={() => setIsSettingsModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
               >
                 Закрыть
               </button>
@@ -116,7 +116,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
       <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden h-full flex flex-col">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <span className="text-lg text-[#00695C] font-semibold">{object.name} (Объект)</span>
-          <button onClick={() => setIsSettingsModalOpen(true)} className="text-gray-400 hover:text-blue-500 p-1.5 rounded-md">
+          <button onClick={() => setIsSettingsModalOpen(true)} className="text-gray-400 hover:text-blue-500 p-1.5 rounded-md cursor-pointer">
             <Settings className="w-5 h-5" />
           </button>
         </div>
@@ -140,7 +140,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
                 <span className="font-bold text-sm text-gray-700">Реквизиты</span>
                 <button
                   onClick={addField}
-                  className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                  className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
                 >
                   <Plus className="w-3 h-3" />
                   Добавить
@@ -161,13 +161,13 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
                       <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
                         <button
                           onClick={cancelDelete}
-                          className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                          className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
                         >
                           Отмена
                         </button>
                         <button
                           onClick={confirmDeleteField}
-                          className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-lg shadow-red-200 transition-all"
+                          className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-lg shadow-red-200 transition-all cursor-pointer"
                         >
                           Удалить
                         </button>
@@ -215,7 +215,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
                           <div className="flex justify-center gap-1">
                             <button
                               onClick={() => setSelectedFieldId(field.id)}
-                              className="text-gray-400 hover:text-blue-500 hover:bg-blue-50 p-1.5 rounded transition-colors"
+                              className="text-gray-400 hover:text-blue-500 hover:bg-blue-50 p-1.5 rounded transition-colors cursor-pointer"
                             >
                               <Settings className="w-4 h-4" />
                             </button>
@@ -224,7 +224,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
                                 e.stopPropagation()
                                 requestDeleteField(field.id)
                               }}
-                              className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors"
+                              className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
