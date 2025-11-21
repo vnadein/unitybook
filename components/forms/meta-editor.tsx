@@ -70,11 +70,11 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
     <>
       {isSettingsModalOpen && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-[800px] h-[600px] overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-[800px] h-[600px] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
               <h3 className="font-bold text-gray-900">Настройки объекта</h3>
             </div>
-            <div className="p-6">
+            <div className="p-6 flex-1 flex flex-col">
               <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                 <label className="text-sm font-medium text-gray-600">Автоматическое нумерование:</label>
                 <input
@@ -104,11 +104,11 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
               </div>
 
               {/* Journal Form Settings */}
-              <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+              <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden flex-1 flex flex-col">
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <span className="font-bold text-sm text-gray-700">Настройки формы журнала</span>
                 </div>
-                <div className="max-h-[200px] overflow-y-auto">
+                <div className="flex-1 overflow-y-auto">
                   <table className="w-full text-sm text-left">
                     <thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0">
                       <tr>
