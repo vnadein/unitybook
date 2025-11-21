@@ -19,7 +19,7 @@ interface Tab {
 }
 
 export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void; user: string | null; toggleMode: () => void }) {
-  const { metadata, currentUser } = useContext(SystemContext)
+  const { metadata, currentUser, data } = useContext(SystemContext)
   const [tabs, setTabs] = useState<Tab[]>([
     { id: "start", type: "report", title: "Начальная страница", active: true }, // Using report as dashboard placeholder
   ])
@@ -75,7 +75,8 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
       const item = data[metaId]?.[objectId]
       if (item) {
         if (meta.type === "catalog") {
-          tabTitle = item._name || "(Без наименования)"
+          const name = item._name || "(Без наименования)";
+          tabTitle = name.length > 10 ? name.substring(0, 10) + "..." : name;
         } else { // document
           tabTitle = `№${item.Номер || "..."} от ${item.Дата || "..."}`
         }
@@ -149,7 +150,8 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
 
           if (meta && savedItem) {
             if (meta.type === "catalog") {
-              newTitle = savedItem._name || "(Без наименования)"
+              const name = savedItem._name || "(Без наименования)";
+              newTitle = name.length > 10 ? name.substring(0, 10) + "..." : name;
             } else { // document
               newTitle = `№${savedItem.Номер || "..."} от ${savedItem.Дата || "..."}`
             }
