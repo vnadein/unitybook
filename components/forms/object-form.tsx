@@ -141,7 +141,7 @@ export function ObjectForm({
               ${
                 isPreview
                   ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-                  : "bg-emerald-500 hover:bg-emerald-600 border-emerald-700 text-white"
+                  : "bg-emerald-500 hover:bg-emerald-600 border-emerald-700 text-white cursor-pointer"
               }`}
           >
             <Save className="w-3 h-3" />
@@ -150,12 +150,12 @@ export function ObjectForm({
           <button
             onClick={handleSaveOnly}
             disabled={isPreview}
-            className={`p-1 rounded ${isPreview ? "text-gray-300" : "hover:bg-[#B2DFDB] text-gray-600"}`}
+            className={`p-1 rounded cursor-pointer ${isPreview ? "text-gray-300" : "hover:bg-[#B2DFDB] text-gray-600"}`}
           >
             <Save className="w-4 h-4" />
           </button>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-red-100 hover:text-red-600 rounded">
+        <button onClick={onClose} className="p-1 hover:bg-red-100 hover:text-red-600 rounded cursor-pointer">
           <X className="w-4 h-4" />
         </button>
       </div>
