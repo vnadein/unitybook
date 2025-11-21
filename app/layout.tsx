@@ -7,10 +7,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'v0 App',
+  title: 'UnityBook: Enterprise 0.1',
   description: 'Created with v0',
-  generator: 'v0.app',
-  icons: {
+    icons: {
     icon: [
       {
         url: '/icon-light-32x32.png',

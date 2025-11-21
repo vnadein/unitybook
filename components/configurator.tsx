@@ -109,10 +109,34 @@ export function Configurator({ onExit, toggleMode }: { onExit: () => void; toggl
     <OneCLayout title="Конфигуратор" onExit={onExit} user="Администратор" toggleMode={toggleMode}>
       <div className="flex w-full h-full">
         {/* Configuration Tree */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
-          <div className="flex-1 overflow-y-auto p-3">
-            {/* Catalogs Node */}
-            <div className="mb-4">
+                    <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+                      <div className="flex-1 overflow-y-auto p-3">
+                        {/* Configuration Node */}
+                        <div className="mb-4">
+                          <div className="flex items-center gap-2 text-gray-700 font-medium p-2 rounded-md">
+                            <Settings className="w-4 h-4 text-emerald-500 fill-emerald-100" />
+                            <span>Конфигурация</span>
+                          </div>
+                          <div className="pl-4 border-l-2 border-gray-100 ml-2.5 mt-1 space-y-1">
+                            {/* General Settings */}
+                            <div
+                              onClick={() => {
+                                setSelectedObjId("general-settings")
+                                setView({ type: "default" }) // Placeholder, can be changed later for a specific settings view
+                              }}
+                              className={`flex items-center gap-2 cursor-pointer p-2 rounded-md text-xs transition-colors ${
+                                selectedObjId === "general-settings" ? "bg-emerald-100 text-emerald-900 font-medium" : "text-gray-600 hover:bg-gray-50"
+                              }`}
+                            >
+                              <div
+                                className={`w-2 h-2 rounded-full ${selectedObjId === "general-settings" ? "bg-emerald-500" : "bg-gray-300"}`}
+                              />
+                              <span>Общие настройки</span>
+                            </div>
+                          </div>
+                        </div>
+        
+                        {/* Catalogs Node */}            <div className="mb-4">
               <div className="flex items-center gap-2 text-gray-700 font-medium cursor-pointer hover:bg-emerald-50 p-2 rounded-md transition-colors group">
                 <Folder className="w-4 h-4 text-emerald-500 fill-emerald-100" />
                 <span>Справочники</span>
@@ -200,7 +224,9 @@ export function Configurator({ onExit, toggleMode }: { onExit: () => void; toggl
                     selectedObjId === "users" ? "bg-emerald-100 text-emerald-900 font-medium" : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
-                  <User className="w-4 h-4 text-gray-500" />
+                  <div
+                    className={`w-2 h-2 rounded-full ${selectedObjId === "users" ? "bg-emerald-500" : "bg-gray-300"}`}
+                  />
                   <span>Пользователи</span>
                 </div>
                 {/* User Groups */}
@@ -213,7 +239,9 @@ export function Configurator({ onExit, toggleMode }: { onExit: () => void; toggl
                     selectedObjId === "groups" ? "bg-emerald-100 text-emerald-900 font-medium" : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
-                  <Users className="w-4 h-4 text-gray-500" />
+                  <div
+                    className={`w-2 h-2 rounded-full ${selectedObjId === "groups" ? "bg-emerald-500" : "bg-gray-300"}`}
+                  />
                   <span>Группы</span>
                 </div>
               </div>

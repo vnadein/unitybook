@@ -70,7 +70,7 @@ export function OneCLayout({ children, title, onExit, user, tabs = [], onTabClic
             >
               <span className="truncate text-xs">{tab.title}</span>
               <X
-                className={`w-3.5 h-3.5 rounded p-0.5 transition-colors ${
+                className={`w-3.5 h-3.5 rounded p-0.5 transition-colors cursor-pointer ${
                   tab.active ? "text-gray-400 hover:bg-red-100 hover:text-red-600" : "opacity-0 group-hover:opacity-100"
                 }`}
                 onClick={(e) => {
@@ -92,7 +92,7 @@ export function OneCLayout({ children, title, onExit, user, tabs = [], onTabClic
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           Готово
         </span>
-        <span>UnityBook Enterprise 1.0</span>
+        <span>UnityBook Enterprise 0.1</span>
       </div>
     </div>
   )
