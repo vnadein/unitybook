@@ -255,19 +255,19 @@ export function Configurator({ onExit, toggleMode }: { onExit: () => void; toggl
             <div className="bg-white border-b border-gray-200 px-6 py-3 flex gap-4 shadow-sm">
               <button
                 onClick={() => setView({ type: "edit-meta", id: view.id, objectType: view.objectType })}
-                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-emerald-500 text-white shadow-md shadow-emerald-200"
+                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-emerald-500 text-white shadow-md shadow-emerald-200 cursor-pointer"
               >
                 Редактирование
               </button>
               <button
                 onClick={() => setView({ type: "preview-form", id: view.id, objectType: view.objectType })}
-                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-gray-100 text-gray-600 hover:bg-gray-200"
+                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer"
               >
                 Просмотр формы
               </button>
               <button
                 onClick={handleDeleteObject}
-                className="ml-auto flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                className="ml-auto flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3 h-3" />
                 Удалить
@@ -278,13 +278,13 @@ export function Configurator({ onExit, toggleMode }: { onExit: () => void; toggl
             <div className="bg-white border-b border-gray-200 px-6 py-3 flex gap-4 shadow-sm">
               <button
                 onClick={() => setView({ type: "edit-meta", id: view.id, objectType: view.objectType })}
-                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-gray-100 text-gray-600 hover:bg-gray-200"
+                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer"
               >
                 Редактирование
               </button>
               <button
                 onClick={() => setView({ type: "preview-form", id: view.id, objectType: view.objectType })}
-                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-emerald-500 text-white shadow-md shadow-emerald-200"
+                className="text-xs font-medium px-4 py-2 rounded-lg transition-all bg-emerald-500 text-white shadow-md shadow-emerald-200 cursor-pointer"
               >
                 Просмотр формы
               </button>
