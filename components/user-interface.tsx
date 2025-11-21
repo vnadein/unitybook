@@ -150,7 +150,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
             <button
               key={cat.id}
               onClick={() => openList(cat)}
-              className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg transition-all group ${
+              className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg transition-all group cursor-pointer ${
                 activeTab?.metaId === cat.id
                   ? "bg-emerald-100 text-emerald-900 font-medium"
                   : "hover:bg-emerald-50 hover:text-emerald-700 text-gray-600"
@@ -172,7 +172,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
             <button
               key={doc.id}
               onClick={() => openList(doc)}
-              className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg transition-all group ${
+              className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg transition-all group cursor-pointer ${
                 activeTab?.metaId === doc.id
                   ? "bg-emerald-100 text-emerald-900 font-medium"
                   : "hover:bg-emerald-50 hover:text-emerald-700 text-gray-600"
@@ -192,7 +192,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
           <div className="text-xs font-bold text-gray-400 uppercase px-3 py-2 mt-6 tracking-wider">Отчеты</div>
           <button
             onClick={openReport}
-            className="w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700 text-gray-600 rounded-lg transition-all group"
+            className="w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700 text-gray-600 rounded-lg transition-all group cursor-pointer"
           >
             <PieChart className="w-4 h-4 text-emerald-500 group-hover:fill-emerald-100 transition-colors" />
             <span className="text-sm font-medium">Универсальный отчет</span>
@@ -203,7 +203,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
               <div className="text-xs font-bold text-gray-400 uppercase px-3 py-2 mt-6 tracking-wider">Администрирование</div>
               <button
                 onClick={openRecycleBin}
-                className="w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700 text-gray-600 rounded-lg transition-all group"
+                className="w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700 text-gray-600 rounded-lg transition-all group cursor-pointer"
               >
                 <Trash2 className="w-4 h-4 text-emerald-500 group-hover:fill-emerald-100 transition-colors" />
                 <span className="text-sm font-medium">Корзина</span>
