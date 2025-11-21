@@ -221,6 +221,12 @@ export function ListForm({
                   <th className="border border-gray-300 p-1 text-left font-medium text-gray-600">Наименование</th>
                 </>
               )}
+              {meta.type === "document" && (
+                <>
+                  <th className="border border-gray-300 p-1 text-left font-medium text-gray-600">Номер</th>
+                  <th className="border border-gray-300 p-1 text-left font-medium text-gray-600">Дата</th>
+                </>
+              )}
               {meta.fields.map((f) => (
                 <th key={f.id} className="border border-gray-300 p-1 text-left font-medium text-gray-600">
                   {f.name}
@@ -256,6 +262,16 @@ export function ListForm({
                     </td>
                     <td className={`border border-gray-200 p-1 ${item._markedForDeletion ? "line-through" : ""}`}>
                       {item._name}
+                    </td>
+                  </>
+                )}
+                {meta.type === "document" && (
+                  <>
+                    <td className={`border border-gray-200 p-1 ${item._markedForDeletion ? "line-through" : ""}`}>
+                      {item.Номер}
+                    </td>
+                    <td className={`border border-gray-200 p-1 ${item._markedForDeletion ? "line-through" : ""}`}>
+                      {item.Дата}
                     </td>
                   </>
                 )}
