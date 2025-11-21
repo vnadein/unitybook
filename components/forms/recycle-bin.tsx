@@ -73,7 +73,7 @@ export function RecycleBin() {
         <button
           onClick={handleRestore}
           disabled={selectedItems.length === 0}
-          className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-300 rounded hover:bg-yellow-100 text-xs disabled:opacity-50"
+          className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-300 rounded hover:bg-yellow-100 text-xs disabled:opacity-50 cursor-pointer"
         >
           <Undo className="w-3 h-3 text-blue-600" />
           <span>Восстановить</span>
@@ -82,7 +82,7 @@ export function RecycleBin() {
           <button
             onClick={handleDelete}
             disabled={selectedItems.length === 0}
-            className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-300 rounded hover:bg-red-100 text-xs disabled:opacity-50"
+            className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-300 rounded hover:bg-red-100 text-xs disabled:opacity-50 cursor-pointer"
           >
             <Trash2 className="w-3 h-3 text-red-600" />
             <span>Удалить навсегда</span>
