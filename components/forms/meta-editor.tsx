@@ -33,6 +33,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
       id: `f_${Date.now()}`,
       name: "НовыйРеквизит",
       type: "string" as FieldType,
+      showInJournal: true, // Default to true
     }
     updateObject("fields", [...object.fields, newField])
   }
@@ -100,6 +101,70 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
                     />
                   </>
                 )}
+              </div>
+
+              {/* Journal Form Settings */}
+              <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                  <span className="font-bold text-sm text-gray-700">Настройки формы журнала</span>
+                </div>
+                <div className="max-h-[200px] overflow-y-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0">
+                      <tr>
+                        <th className="p-3 font-medium pl-4">Реквизит</th>
+                        <th className="p-3 font-medium text-center">Показывать в журнале</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {objectType === "catalog" && (
+                        <>
+                          <tr>
+                            <td className="p-2 pl-4">Код</td>
+                            <td className="p-2 text-center">
+                              <input type="checkbox" checked={true} disabled className="w-4 h-4 text-emerald-600 border-gray-300 rounded" />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 pl-4">Наименование</td>
+                            <td className="p-2 text-center">
+                              <input type="checkbox" checked={true} disabled className="w-4 h-4 text-emerald-600 border-gray-300 rounded" />
+                            </td>
+                          </tr>
+                        </>
+                      )}
+                      {objectType === "document" && (
+                        <>
+                          <tr>
+                            <td className="p-2 pl-4">Номер</td>
+                            <td className="p-2 text-center">
+                              <input type="checkbox" checked={true} disabled className="w-4 h-4 text-emerald-600 border-gray-300 rounded" />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 pl-4">Дата</td>
+                            <td className="p-2 text-center">
+                              <input type="checkbox" checked={true} disabled className="w-4 h-4 text-emerald-600 border-gray-300 rounded" />
+                            </td>
+                          </tr>
+                        </>
+                      )}
+                      {object.fields.map((field: any) => (
+                        <tr key={field.id}>
+                          <td className="p-2 pl-4">{field.name}</td>
+                          <td className="p-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={field.showInJournal ?? true} // Default to true if undefined
+                              onChange={(e) => updateField(field.id, "showInJournal", e.target.checked)}
+                              className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
             <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">

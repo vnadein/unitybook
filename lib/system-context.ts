@@ -14,6 +14,7 @@ export interface FieldMeta {
   required?: boolean // Обязательное поле
   min?: number // Минимальное значение
   max?: number // Максимальное значение
+  showInJournal?: boolean // Показывать ли поле в журнале (списковой форме)
 }
 
 export interface ObjectMeta {
