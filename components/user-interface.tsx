@@ -62,8 +62,16 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
     const meta = [...metadata.catalogs, ...metadata.documents].find((m) => m.id === metaId)
     if (!meta) return
 
+    const targetTabId = `obj_${metaId}_${objectId || "new"}`
+    const existingTab = tabs.find((t) => t.id === targetTabId)
+
+    if (existingTab) {
+      activateTab(existingTab.id)
+      return
+    }
+
     const newTab: Tab = {
-      id: `obj_${metaId}_${objectId || "new"}`,
+      id: targetTabId,
       type: "object",
       title: objectId ? `${meta.name} (ред.)` : `${meta.name} (созд.)`,
       metaId: metaId,
