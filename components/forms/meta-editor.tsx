@@ -70,7 +70,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
     <>
       {isSettingsModalOpen && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-[400px] overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-[800px] h-[600px] overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
               <h3 className="font-bold text-gray-900">Настройки объекта</h3>
             </div>
