@@ -1,21 +1,282 @@
 "use client"
 
-import { useContext, useState } from "react"
-import { SystemContext, type FieldType } from "@/lib/system-context"
-import { Plus, Trash2, Settings } from "lucide-react"
+import { useContext, useState, useMemo } from "react"
+import { SystemContext, type FieldType, type ObjectMeta, type TabularSectionMeta } from "@/lib/system-context"
+import { Plus, Trash2, Settings, GripVertical } from "lucide-react"
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+
+
+// New component for the sortable row
+function SortableRow({ field, children }: { field: { id: string }, children: (listeners: any) => React.ReactNode }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: field.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 'auto',
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style} {...attributes}>
+      {children(listeners)}
+    </tr>
+  )
+}
+
+function TabularSectionEditor({
+  object,
+  ts,
+  onClose,
+  onSave,
+  updateObject,
+}: {
+  object: ObjectMeta
+  ts: TabularSectionMeta
+  onClose: () => void
+  onSave: (updatedTs: TabularSectionMeta) => void;
+  updateObject: (key: string, value: any) => void
+}) {
+  const [fields, setFields] = useState<FieldType[]>(ts.fields)
+  const [selectedTsFieldId, setSelectedTsFieldId] = useState<string | null>(null)
+
+  const { metadata } = useContext(SystemContext);
+
+
+  const selectedTsField = fields.find((f) => f.id === selectedTsFieldId)
+
+  const handleSave = () => {
+    onSave({ ...ts, fields });
+    onClose();
+  };
+
+  const addTsField = () => {
+    const newField = {
+      id: `tsf_${Date.now()}`,
+      name: "НовыйРеквизит",
+      type: "string" as FieldType,
+    }
+    setFields([...fields, newField])
+  }
+  
+  const updateTsField = (fieldId: string, key: string, value: any) => {
+    setFields(fields.map(f => f.id === fieldId ? {...f, [key]: value} : f));
+  };
+  
+  const deleteTsField = (fieldId: string) => {
+      setFields(fields.filter(f => f.id !== fieldId));
+  }
+  
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+  )
+
+  function handleTsDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (active.id !== over?.id) {
+      const oldIndex = fields.findIndex((f) => f.id === active.id)
+      const newIndex = fields.findIndex((f) => f.id === over?.id)
+      if (oldIndex !== -1 && newIndex !== -1) {
+        setFields(arrayMove(fields, oldIndex, newIndex))
+      }
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[60] backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl w-[90vw] max-w-[1200px] h-[80vh] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col">
+        <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="font-bold text-gray-900">Настройки табличной части: {ts.name}</h3>
+          <div className="flex gap-2">
+             <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg">Отмена</button>
+             <button onClick={handleSave} className="px-4 py-2 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg">Сохранить и закрыть</button>
+          </div>
+        </div>
+        
+        <div className="flex flex-1 overflow-hidden">
+            <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+                 <div className="border border-gray-200 rounded-xl overflow-hidden h-full flex flex-col">
+                   <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                     <span className="font-bold text-sm text-gray-700">Реквизиты</span>
+                     <button
+                       onClick={addTsField}
+                       className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs"
+                     >
+                       <Plus className="w-3 h-3" />
+                       Добавить
+                     </button>
+                   </div>
+                    <div className="flex-1 overflow-y-auto">
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTsDragEnd}>
+                          <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                            <table className="w-full text-sm text-left">
+                              <thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0">
+                                <tr>
+                                  <th className="p-3 font-medium w-10"></th>
+                                  <th className="p-3 font-medium pl-4">Имя</th>
+                                  <th className="p-3 font-medium">Тип</th>
+                                  <th className="p-3 font-medium w-20 text-center">Действия</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-50">
+                                {fields.map((field) => (
+                                  <SortableRow key={field.id} field={field}>
+                                    {(listeners) => (
+                                      <>
+                                        <td className="p-2 text-center">
+                                          <button {...listeners} className="cursor-grab p-1.5 text-gray-400 hover:bg-gray-200 rounded-md">
+                                            <GripVertical className="w-4 h-4" />
+                                          </button>
+                                        </td>
+                                        <td onClick={() => setSelectedTsFieldId(field.id)} className={`p-2 pl-4 cursor-pointer ${selectedTsFieldId === field.id ? 'bg-emerald-50' : ''}`}>
+                                            <input
+                                              value={field.name}
+                                              onChange={(e) => updateTsField(field.id, "name", e.target.value)}
+                                              className="w-full bg-transparent border border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white rounded p-1 outline-none text-xs"
+                                            />
+                                        </td>
+                                        <td onClick={() => setSelectedTsFieldId(field.id)} className={`p-2 cursor-pointer ${selectedTsFieldId === field.id ? 'bg-emerald-50' : ''}`}>
+                                          <select
+                                            value={field.type}
+                                            onChange={(e) => updateTsField(field.id, "type", e.target.value)}
+                                            className="w-full bg-transparent border border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white rounded p-1 outline-none text-xs"
+                                          >
+                                            <option value="string">Строка</option>
+                                            <option value="number">Число</option>
+                                            <option value="boolean">Булево</option>
+                                            <option value="date">Дата</option>
+                                            <option value="reference">Справочник Ссылка</option>
+                                          </select>
+                                        </td>
+                                        <td onClick={() => setSelectedTsFieldId(field.id)} className={`p-2 text-center pr-4 cursor-pointer ${selectedTsFieldId === field.id ? 'bg-emerald-50' : ''}`}>
+                                          <div className="flex justify-center gap-1">
+                                            <button onClick={(e) => {e.stopPropagation(); deleteTsField(field.id)}} className="text-gray-400 hover:text-red-500 p-1.5 rounded">
+                                              <Trash2 className="w-4 h-4" />
+                                            </button>
+                                          </div>
+                                        </td>
+                                      </>
+                                    )}
+                                  </SortableRow>
+                                ))}
+                              </tbody>
+                            </table>
+                          </SortableContext>
+                        </DndContext>
+                    </div>
+                </div>
+            </div>
+            
+            {selectedTsField && (
+            <aside className="w-96 bg-gray-50/50 border-l border-gray-200 overflow-y-auto">
+              <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
+                <span className="font-bold text-sm text-gray-700">
+                  Свойства реквизита: {selectedTsField.name}
+                </span>
+              </div>
+              <div className="p-6 space-y-4">
+                {/* Common Properties */}
+                <div className="grid grid-cols-[120px_1fr] gap-4 items-center">
+                  <label className="text-xs text-gray-600 text-right">Обязательный:</label>
+                  <input
+                    type="checkbox"
+                    checked={selectedTsField.required || false}
+                    onChange={(e) => updateTsField(selectedTsField.id, "required", e.target.checked)}
+                    className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                  />
+                </div>
+
+                {selectedTsField.type === "string" && (
+                  <>
+                    <div className="grid grid-cols-[120px_1fr] gap-4 items-center">
+                      <label className="text-xs text-gray-600 text-right">Длина:</label>
+                      <input
+                        type="number"
+                        value={selectedTsField.length || ""}
+                        onChange={(e) =>
+                          updateTsField(selectedTsField.id, "length", e.target.value ? parseInt(e.target.value) : undefined)
+                        }
+                        className="border border-gray-300 p-1 text-xs rounded focus:border-emerald-500 outline-none w-24"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {selectedTsField.type === "reference" && (
+                  <>
+                    <div className="grid grid-cols-[120px_1fr] gap-4 items-center">
+                      <label className="text-xs text-gray-600 text-right">Ссылка на:</label>
+                      <select
+                        value={selectedTsField.referenceTo || ""}
+                        onChange={(e) => updateTsField(selectedTsField.id, "referenceTo", e.target.value)}
+                        className="border border-gray-300 p-1 text-xs rounded focus:border-emerald-500 outline-none"
+                      >
+                        <option value="">Не выбрано</option>
+                        {metadata.catalogs.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
+            </aside>
+          )}
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
 
 export function MetaEditor({ metaId, objectType }: { metaId: string; objectType: "catalog" | "document" }) {
   const { metadata, updateMetadata } = useContext(SystemContext)
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
   const [fieldToDelete, setFieldToDelete] = useState<string | null>(null)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+  
+  const [isTsSettingsModalOpen, setIsTsSettingsModalOpen] = useState(false);
+  const [selectedTs, setSelectedTs] = useState<TabularSectionMeta | null>(null);
+  const [tsToDelete, setTsToDelete] = useState<TabularSectionMeta | null>(null);
 
-  const object =
+
+  const object = useMemo(() =>
     objectType === "catalog"
       ? metadata.catalogs.find((o) => o.id === metaId)
       : metadata.documents.find((o) => o.id === metaId)
+  , [metaId, objectType, metadata.catalogs, metadata.documents]);
 
-  const selectedField = object?.fields.find((f: any) => f.id === selectedFieldId)
+
+  const selectedField = useMemo(() => object?.fields.find((f: any) => f.id === selectedFieldId), [object, selectedFieldId]);
 
   const updateObject = (key: string, value: any) => {
     if (!object) return
@@ -61,6 +322,71 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
   const cancelDelete = () => {
     setFieldToDelete(null)
   }
+  
+    const addTabularSection = () => {
+        if (!object) return;
+        const newTs: TabularSectionMeta = {
+            id: `ts_${Date.now()}`,
+            name: "НоваяТабличнаяЧасть",
+            fields: [],
+        };
+        const updatedTs = [...(object.tabularSections || []), newTs];
+        updateObject("tabularSections", updatedTs);
+    };
+
+    const updateTabularSection = (tsId: string, updatedTs: TabularSectionMeta) => {
+        if (!object) return;
+        const updatedSections = (object.tabularSections || []).map(ts => 
+            ts.id === tsId ? updatedTs : ts
+        );
+        updateObject("tabularSections", updatedSections);
+    };
+
+    const requestDeleteTs = (ts: TabularSectionMeta) => {
+        setTsToDelete(ts);
+    };
+
+    const confirmDeleteTs = () => {
+        if (!tsToDelete || !object) return;
+        const updatedSections = (object.tabularSections || []).filter(ts => ts.id !== tsToDelete.id);
+        updateObject("tabularSections", updatedSections);
+        setTsToDelete(null);
+    };
+    
+    const cancelDeleteTs = () => {
+        setTsToDelete(null);
+    };
+
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // 5px of movement is required to start dragging
+      },
+    })
+  );
+  
+  function handleDragEnd(event: DragEndEvent) {
+    const {active, over} = event;
+    
+    if (object && active.id !== over?.id) {
+        const activeId = String(active.id);
+        const overId = String(over?.id);
+
+        // Check if we are dragging main fields
+        if (activeId.startsWith('f_') && overId.startsWith('f_')) {
+            const oldIndex = object.fields.findIndex(f => f.id === active.id);
+            const newIndex = object.fields.findIndex(f => f.id === over?.id);
+            
+            if (oldIndex !== -1 && newIndex !== -1) {
+                const newFields = arrayMove(object.fields, oldIndex, newIndex);
+                updateObject("fields", newFields);
+            }
+        }
+        // TODO: Add logic for dragging tabular sections if needed
+    }
+  }
+
 
   if (!object) {
     return <div>Объект не найден</div>
@@ -74,8 +400,8 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
               <h3 className="font-bold text-gray-900">Настройки объекта</h3>
             </div>
-            <div className="p-6 flex-1 flex flex-col">
-              <div className="grid grid-cols-[1fr_auto] gap-4 items-center mb-6">
+            <div className="flex-1 p-6 flex flex-col gap-6 overflow-hidden">
+              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                 <label className="text-sm font-medium text-gray-600">Автоматическое нумерование:</label>
                 <input
                   type="checkbox"
@@ -178,6 +504,30 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
           </div>
         </div>
       )}
+      
+      {isTsSettingsModalOpen && selectedTs && (
+          <TabularSectionEditor ts={selectedTs} onClose={() => setIsTsSettingsModalOpen(false)} />
+      )}
+      
+      {tsToDelete && (
+         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm">
+           <div className="bg-white rounded-xl shadow-2xl w-[400px] overflow-hidden animate-in fade-in zoom-in duration-200">
+             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+               <h3 className="font-bold text-gray-900">Удаление табличной части</h3>
+             </div>
+             <div className="p-6">
+               <p className="text-sm text-gray-600">
+                 Вы действительно хотите удалить табличную часть "{tsToDelete.name}"? Все ее поля также будут удалены.
+               </p>
+             </div>
+             <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+               <button onClick={cancelDeleteTs} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg">Отмена</button>
+               <button onClick={confirmDeleteTs} className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg">Удалить</button>
+             </div>
+           </div>
+         </div>
+       )}
+
       <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden h-full flex flex-col">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <span className="text-lg text-[#00695C] font-semibold">{object.name} (Объект)</span>
@@ -211,7 +561,7 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
                   Добавить
                 </button>
               </div>
-              <div className="max-h-[calc(100vh-350px)] overflow-y-auto">
+              <div className="max-h-[calc(50vh-200px)] overflow-y-auto">
                 {fieldToDelete && (
                   <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-2xl w-[400px] overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -240,68 +590,161 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
                     </div>
                   </div>
                 )}
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0">
-                    <tr>
-                      <th className="p-3 font-medium pl-4">Имя</th>
-                      <th className="p-3 font-medium">Тип</th>
-                      <th className="p-3 font-medium w-20 text-center">Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {object.fields.map((field: any) => (
-                      <tr
-                        key={field.id}
-                        className={`transition-colors ${
-                          selectedFieldId === field.id ? "bg-emerald-50" : "hover:bg-emerald-50/50"
-                        }`}
-                      >
-                        <td className="p-2 pl-4">
-                          <input
-                            value={field.name}
-                            onChange={(e) => updateField(field.id, "name", e.target.value)}
-                            className="w-full bg-transparent border border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white rounded p-1 outline-none text-xs"
-                          />
-                        </td>
-                        <td className="p-2">
-                          <select
-                            value={field.type}
-                            onChange={(e) => updateField(field.id, "type", e.target.value)}
-                            className="w-full bg-transparent border border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white rounded p-1 outline-none text-xs"
-                          >
-                            <option value="string">Строка</option>
-                            <option value="number">Число</option>
-                            <option value="boolean">Булево</option>
-                            <option value="date">Дата</option>
-                            <option value="reference">Справочник Ссылка</option>
-                          </select>
-                        </td>
-                        <td className="p-2 text-center pr-4">
-                          <div className="flex justify-center gap-1">
-                            <button
-                              onClick={() => setSelectedFieldId(field.id)}
-                              className="text-gray-400 hover:text-blue-500 hover:bg-blue-50 p-1.5 rounded transition-colors cursor-pointer"
-                            >
-                              <Settings className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                requestDeleteField(field.id)
-                              }}
-                              className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={object.fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0">
+                        <tr>
+                          <th className="p-3 font-medium w-10 text-center"></th>
+                          <th className="p-3 font-medium pl-4">Имя</th>
+                          <th className="p-3 font-medium">Тип</th>
+                          <th className="p-3 font-medium w-20 text-center">Действия</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {object.fields.map((field: any) => (
+                          <SortableRow key={field.id} field={field}>
+                            {(listeners) => (
+                              <>
+                                <td className="p-2 text-center">
+                                  <button {...listeners} className="cursor-grab p-1.5 text-gray-400 hover:bg-gray-200 rounded-md">
+                                    <GripVertical className="w-4 h-4" />
+                                  </button>
+                                </td>
+                                <td
+                                  className={`p-2 pl-4 transition-colors ${
+                                    selectedFieldId === field.id ? "bg-emerald-50" : "hover:bg-emerald-50/50"
+                                  }`}
+                                >
+                                  <input
+                                    value={field.name}
+                                    onChange={(e) => updateField(field.id, "name", e.target.value)}
+                                    className="w-full bg-transparent border border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white rounded p-1 outline-none text-xs"
+                                  />
+                                </td>
+                                <td
+                                  className={`p-2 transition-colors ${
+                                    selectedFieldId === field.id ? "bg-emerald-50" : "hover:bg-emerald-50/50"
+                                  }`}
+                                >
+                                  <select
+                                    value={field.type}
+                                    onChange={(e) => updateField(field.id, "type", e.target.value)}
+                                    className="w-full bg-transparent border border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white rounded p-1 outline-none text-xs"
+                                  >
+                                    <option value="string">Строка</option>
+                                    <option value="number">Число</option>
+                                    <option value="boolean">Булево</option>
+                                    <option value="date">Дата</option>
+                                    <option value="reference">Справочник Ссылка</option>
+                                  </select>
+                                </td>
+                                <td
+                                  className={`p-2 text-center pr-4 transition-colors ${
+                                    selectedFieldId === field.id ? "bg-emerald-50" : "hover:bg-emerald-50/50"
+                                  }`}
+                                >
+                                  <div className="flex justify-center gap-1">
+                                    <button
+                                      onClick={() => setSelectedFieldId(field.id)}
+                                      className="text-gray-400 hover:text-blue-500 hover:bg-blue-50 p-1.5 rounded transition-colors cursor-pointer"
+                                    >
+                                      <Settings className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        requestDeleteField(field.id)
+                                      }}
+                                      className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors cursor-pointer"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </>
+                            )}
+                          </SortableRow>
+                        ))}
+                      </tbody>
+                    </table>
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
+            
+            {/* Tabular Sections Editor */}
+            <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <span className="font-bold text-sm text-gray-700">Табличные части</span>
+                    <button
+                        onClick={addTabularSection}
+                        className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
+                    >
+                        <Plus className="w-3 h-3" />
+                        Добавить
+                    </button>
+                </div>
+                <div className="max-h-[calc(50vh-200px)] overflow-y-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0">
+                            <tr>
+                                <th className="p-3 font-medium pl-4">Имя</th>
+                                <th className="p-3 font-medium w-40 text-center">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {(object.tabularSections || []).map((ts) => (
+                                <tr key={ts.id} className="hover:bg-emerald-50/50">
+                                    <td className="p-2 pl-4">
+                                        <input
+                                            value={ts.name}
+                                            onChange={(e) => {
+                                                const updatedTs = { ...ts, name: e.target.value };
+                                                updateTabularSection(ts.id, updatedTs);
+                                            }}
+                                            className="w-full bg-transparent border border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white rounded p-1 outline-none text-xs"
+                                        />
+                                    </td>
+                                    <td className="p-2 text-center pr-4">
+                                        <div className="flex justify-center gap-1">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedTs(ts);
+                                                    setIsTsSettingsModalOpen(true);
+                                                }}
+                                                className="text-gray-400 hover:text-blue-500 hover:bg-blue-50 p-1.5 rounded transition-colors cursor-pointer flex items-center gap-1"
+                                            >
+                                                <Settings className="w-4 h-4" />
+                                                <span>Реквизиты</span>
+                                            </button>
+                                            <button
+                                                onClick={() => requestDeleteTs(ts)}
+                                                className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors cursor-pointer"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
           </div>
+          
+      {isTsSettingsModalOpen && selectedTs && (
+          <TabularSectionEditor
+            object={object}
+            ts={selectedTs}
+            onClose={() => setIsTsSettingsModalOpen(false)}
+            onSave={(updatedTs) => {
+                updateTabularSection(selectedTs.id, updatedTs);
+            }}
+            updateObject={updateObject}
+          />
+      )}
 
           {/* Right Sidebar for Field Properties */}
           {selectedField && (
@@ -652,4 +1095,5 @@ export function MetaEditor({ metaId, objectType }: { metaId: string; objectType:
         </div>
       </div>
     </>
-  )}
+  )
+}

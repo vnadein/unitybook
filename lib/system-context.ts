@@ -7,14 +7,29 @@ export interface FieldMeta {
   id: string
   name: string
   type: FieldType
-  referenceTo?: string // ID справочника, если type === reference
-  length?: number // Длина строки или общая длина числа
-  precision?: number // Точность числа (знаков после запятой)
-  multiline?: boolean // Многострочный режим для строк
-  required?: boolean // Обязательное поле
-  min?: number // Минимальное значение
-  max?: number // Максимальное значение
-  showInJournal?: boolean // Показывать ли поле в журнале (списковой форме)
+  referenceTo?: string
+  length?: number
+  precision?: number
+  multiline?: boolean
+  required?: boolean
+  min?: number
+  max?: number
+  showInJournal?: boolean
+  defaultValue?: any
+  description?: string
+  readOnly?: boolean
+  unique?: boolean
+  password?: boolean
+  isFile?: boolean
+  hidden?: boolean
+  dateVariant?: 'date' | 'time' | 'datetime-local'
+  parentField?: string
+}
+
+export interface TabularSectionMeta {
+  id: string
+  name: string
+  fields: FieldMeta[]
 }
 
 export interface ObjectMeta {
@@ -22,6 +37,10 @@ export interface ObjectMeta {
   name: string
   type: "catalog" | "document"
   fields: FieldMeta[]
+  tabularSections?: TabularSectionMeta[]
+  autoNumbering?: boolean
+  numberReadOnly?: boolean
+  dateReadOnly?: boolean
 }
 
 export interface User {
@@ -60,9 +79,9 @@ export const initialMetadata: Metadata = {
       name: "Контрагенты",
       type: "catalog",
       fields: [
-        { id: "f1", name: "Полное наименование", type: "string", length: 100, required: true },
-        { id: "f2", name: "ИНН", type: "number", length: 10, required: true },
-        { id: "f3", name: "Активен", type: "boolean", required: true },
+        { id: "f1", name: "Полное наименование", type: "string", length: 100, required: true, showInJournal: true },
+        { id: "f2", name: "ИНН", type: "number", length: 10, required: true, showInJournal: true },
+        { id: "f3", name: "Активен", type: "boolean", required: true, showInJournal: false },
       ],
     },
     {
@@ -70,8 +89,8 @@ export const initialMetadata: Metadata = {
       name: "Номенклатура",
       type: "catalog",
       fields: [
-        { id: "f1", name: "Артикул", type: "string", length: 50, required: true },
-        { id: "f2", name: "Цена закупки", type: "number", precision: 2, required: true },
+        { id: "f1", name: "Артикул", type: "string", length: 50, required: true, showInJournal: true },
+        { id: "f2", name: "Цена закупки", type: "number", precision: 2, required: true, showInJournal: true },
       ],
     },
   ],
@@ -81,10 +100,21 @@ export const initialMetadata: Metadata = {
       name: "Приходная накладная",
       type: "document",
       fields: [
-
-        { id: "f3", name: "Контрагент", type: "reference", referenceTo: "cat_contragents", required: true },
-        { id: "f4", name: "Сумма", type: "number", precision: 2, required: true },
+        { id: "f3", name: "Контрагент", type: "reference", referenceTo: "cat_contragents", required: true, showInJournal: true },
+        { id: "f4", name: "Сумма", type: "number", precision: 2, required: true, readOnly: true, showInJournal: true },
       ],
+      tabularSections: [
+        {
+          id: 'ts_products',
+          name: 'Товары',
+          fields: [
+            { id: 'tsf1', name: 'Номенклатура', type: 'reference', referenceTo: 'cat_items', required: true },
+            { id: 'tsf2', name: 'Количество', type: 'number', precision: 3, required: true },
+            { id: 'tsf3', name: 'Цена', type: 'number', precision: 2, required: true },
+            { id: 'tsf4', name: 'Сумма', type: 'number', precision: 2, required: true, readOnly: true },
+          ]
+        }
+      ]
     },
   ],
   users: [
@@ -120,6 +150,23 @@ export const initialData: Record<string, Record<string, any>> = {
       Активен: true,
     },
   },
+  cat_items: {
+    "1": { id: "1", _code: "ITM001", _name: "Ноутбук", "Артикул": "LP-15", "Цена закупки": 80000},
+    "2": { id: "2", _code: "ITM002", _name: "Монитор", "Артикул": "MN-24", "Цена закупки": 20000},
+  },
+  doc_invoice: {
+    "1": {
+      id: "1",
+      Номер: 1,
+      Дата: '2024-07-25',
+      Контрагент: 'ООО Ромашка',
+      Сумма: 100000,
+      Товары: [
+        {id: 'row1', Номенклатура: 'Ноутбук', Количество: 1, Цена: 80000, Сумма: 80000},
+        {id: 'row2', Номенклатура: 'Монитор', Количество: 1, Цена: 20000, Сумма: 20000},
+      ]
+    }
+  }
 }
 
 export const SystemContext = createContext<{
