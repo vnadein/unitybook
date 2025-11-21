@@ -88,7 +88,7 @@ export function ObjectForm({
   metaId: string
   objectId?: string
   onClose: () => void
-  onSaveNew?: (newId: string) => void
+  onSaveNew?: (newId: string, savedData: any) => void
   isPreview?: boolean
 }) {
   const { metadata, data, saveData } = useContext(SystemContext)
@@ -178,7 +178,7 @@ export function ObjectForm({
     const isNew = !objectId
     saveData(metaId, formData.id, formData)
     if (isNew && onSaveNew) {
-      onSaveNew(formData.id)
+      onSaveNew(formData.id, formData)
     }
   }
 

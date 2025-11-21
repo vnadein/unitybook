@@ -1,7 +1,7 @@
 "use client"
 
 import { useContext, useState } from "react"
-import { SystemContext } from "@/lib/system-context"
+import { SystemContext, generateAbbreviation } from "@/lib/system-context"
 import { OneCLayout } from "./one-c-layout"
 import { Folder, FileText, Plus, Users, User, Settings, Trash2, AlertTriangle } from "lucide-react"
 import { ObjectForm } from "./forms/object-form"
@@ -30,9 +30,11 @@ export function Configurator({ onExit, toggleMode }: { onExit: () => void; toggl
 
   const addObject = (type: "catalog" | "document") => {
     const newId = type === "catalog" ? `cat_new_${Date.now()}` : `doc_new_${Date.now()}`
+    const name = type === "catalog" ? "НовыйСправочник" : "НовыйДокумент";
     const newObj = {
       id: newId,
-      name: type === "catalog" ? "НовыйСправочник" : "НовыйДокумент",
+      name: name,
+      abbreviation: generateAbbreviation(name),
       type,
       fields: [],
     }

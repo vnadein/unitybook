@@ -40,6 +40,18 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
     return false
   }
 
+  const generateTabTitle = (meta: ObjectMeta, item: any): string => {
+    const abbreviation = meta.abbreviation || '';
+
+    if (meta.type === "catalog") {
+      const code = item._code || '';
+      return `${abbreviation} ${code}`.trim();
+    } else { // document
+      const number = item.Номер || '';
+      return `${abbreviation} ${number}`.trim();
+    }
+  };
+
   const openList = (meta: ObjectMeta) => {
     if (!hasPermission(meta.id, "read")) return
     const existingTab = tabs.find((t) => t.type === "list" && t.metaId === meta.id)
@@ -74,12 +86,7 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
     if (objectId) {
       const item = data[metaId]?.[objectId]
       if (item) {
-        if (meta.type === "catalog") {
-          const name = item._name || "(Без наименования)";
-          tabTitle = name.length > 10 ? name.substring(0, 10) + "..." : name;
-        } else { // document
-          tabTitle = `№${item.Номер || "..."} от ${item.Дата || "..."}`
-        }
+        tabTitle = generateTabTitle(meta, item);
       } else {
         tabTitle = `${meta.name} (ред.)` // Fallback if item not found
       }
@@ -140,21 +147,15 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
     setTabs(newTabs)
   }
 
-  const updateTabAfterSave = (newId: string) => {
+  const updateTabAfterSave = (newId: string, savedItem: any) => {
     setTabs((prevTabs) =>
       prevTabs.map((tab) => {
         if (tab.active && tab.type === "object" && !tab.objectId) {
           const meta = [...metadata.catalogs, ...metadata.documents].find((m) => m.id === tab.metaId)
-          const savedItem = data[tab.metaId]?.[newId]
           let newTitle = ""
 
           if (meta && savedItem) {
-            if (meta.type === "catalog") {
-              const name = savedItem._name || "(Без наименования)";
-              newTitle = name.length > 10 ? name.substring(0, 10) + "..." : name;
-            } else { // document
-              newTitle = `№${savedItem.Номер || "..."} от ${savedItem.Дата || "..."}`
-            }
+            newTitle = generateTabTitle(meta, savedItem);
           } else {
             newTitle = tab.title.replace("(созд.)", "(ред.)") // Fallback
           }

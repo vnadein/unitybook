@@ -60,7 +60,7 @@ export function OneCLayout({ children, title, onExit, user, tabs = [], onTabClic
               key={tab.id}
               onClick={() => onTabClick?.(tab.id)}
               className={`
-                group flex items-center gap-2 px-4 py-2 border-t border-l border-r rounded-t-md cursor-pointer min-w-[140px] max-w-[240px] justify-between transition-all
+                group flex items-center gap-2 px-4 py-2 border-t border-l border-r rounded-t-md cursor-pointer w-auto max-w-[240px] transition-all
                 ${
                   tab.active
                     ? "bg-white border-gray-200 border-b-white text-emerald-700 font-medium shadow-[0_-2px_4px_rgba(0,0,0,0.02)] relative top-[1px]"

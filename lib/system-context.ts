@@ -1,3 +1,35 @@
+export const generateAbbreviation = (name: string): string => {
+  if (!name) return "";
+
+  const words = name.trim().split(/\s+/).filter(w => w);
+  const vowels = "аеёиоуыэюяaeiouy";
+
+  const getConsonants = (word: string): string => {
+    return word.split('').filter(char => {
+      const lowerChar = char.toLowerCase();
+      return lowerChar >= 'а' && lowerChar <= 'я' && !vowels.includes(lowerChar);
+    }).join('');
+  };
+
+  let abbreviation = "";
+
+  if (words.length > 1) {
+    const firstWordConsonants = getConsonants(words[0]);
+    abbreviation = firstWordConsonants.slice(0, 2);
+    if (words[1]) {
+      abbreviation += words[1][0];
+    }
+  } else if (words.length === 1 && words[0]) {
+    abbreviation = getConsonants(words[0]).slice(0, 3);
+  }
+  
+  if (abbreviation.length < 3) {
+    abbreviation = name.replace(/[^a-zA-Zа-яА-Я]/g, '').slice(0, 3);
+  }
+
+  return abbreviation.toUpperCase().slice(0, 4);
+};
+
 import { createContext } from "react"
 
 // Типы данных для системы
@@ -35,6 +67,7 @@ export interface TabularSectionMeta {
 export interface ObjectMeta {
   id: string
   name: string
+  abbreviation?: string
   type: "catalog" | "document"
   fields: FieldMeta[]
   tabularSections?: TabularSectionMeta[]
@@ -77,6 +110,7 @@ export const initialMetadata: Metadata = {
     {
       id: "cat_contragents",
       name: "Контрагенты",
+      abbreviation: generateAbbreviation("Контрагенты"),
       type: "catalog",
       fields: [
         { id: "f1", name: "Полное наименование", type: "string", length: 100, required: true, showInJournal: true },
@@ -87,6 +121,7 @@ export const initialMetadata: Metadata = {
     {
       id: "cat_items",
       name: "Номенклатура",
+      abbreviation: generateAbbreviation("Номенклатура"),
       type: "catalog",
       fields: [
         { id: "f1", name: "Артикул", type: "string", length: 50, required: true, showInJournal: true },
@@ -98,6 +133,7 @@ export const initialMetadata: Metadata = {
     {
       id: "doc_invoice",
       name: "Приходная накладная",
+      abbreviation: generateAbbreviation("Приходная накладная"),
       type: "document",
       fields: [
         { id: "f3", name: "Контрагент", type: "reference", referenceTo: "cat_contragents", required: true, showInJournal: true },
