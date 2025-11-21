@@ -70,10 +70,26 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
       return
     }
 
+    let tabTitle = ""
+    if (objectId) {
+      const item = data[metaId]?.[objectId]
+      if (item) {
+        if (meta.type === "catalog") {
+          tabTitle = item._name || "(Без наименования)"
+        } else { // document
+          tabTitle = `№${item.Номер || "..."} от ${item.Дата || "..."}`
+        }
+      } else {
+        tabTitle = `${meta.name} (ред.)` // Fallback if item not found
+      }
+    } else {
+      tabTitle = `${meta.name} (созд.)`
+    }
+
     const newTab: Tab = {
       id: targetTabId,
       type: "object",
-      title: objectId ? `${meta.name} (ред.)` : `${meta.name} (созд.)`,
+      title: tabTitle,
       metaId: metaId,
       objectId: objectId,
       active: true,
@@ -127,7 +143,20 @@ export function UserInterface({ onExit, user, toggleMode }: { onExit: () => void
     setTabs((prevTabs) =>
       prevTabs.map((tab) => {
         if (tab.active && tab.type === "object" && !tab.objectId) {
-          const newTitle = tab.title.replace("(созд.)", "(ред.)")
+          const meta = [...metadata.catalogs, ...metadata.documents].find((m) => m.id === tab.metaId)
+          const savedItem = data[tab.metaId]?.[newId]
+          let newTitle = ""
+
+          if (meta && savedItem) {
+            if (meta.type === "catalog") {
+              newTitle = savedItem._name || "(Без наименования)"
+            } else { // document
+              newTitle = `№${savedItem.Номер || "..."} от ${savedItem.Дата || "..."}`
+            }
+          } else {
+            newTitle = tab.title.replace("(созд.)", "(ред.)") // Fallback
+          }
+
           return {
             ...tab,
             objectId: newId,
